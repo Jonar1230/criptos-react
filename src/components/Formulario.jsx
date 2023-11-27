@@ -1,4 +1,4 @@
-import {useEffect} from 'react'
+import {useEffect, useState} from 'react'
 import styled from '@emotion/styled'
 import useSelectMoneda from '../hooks/useSelectMoneda'
 import {monedas} from '../data/monedas'
@@ -24,7 +24,11 @@ const InputSubmit = styled.input`
 
 const Formulario = () => {
 
+  const [criptos, setCriptos] = useState([])
+
+  //utilizacion del hook personalizado, devuelve un state (valor seleccionado) y un selector con las opciones enviadas
   const [moneda, SelectMonedas] = useSelectMoneda('Elige tu Moneda', monedas)  
+  const [criptomoneda, SelectCriptomoneda] = useSelectMoneda('Elige tu Criptomoneda', criptos)   
   
  //cuando el componente este listo utilizaremos la API 
   useEffect(() => {
@@ -33,7 +37,23 @@ const Formulario = () => {
 
             const respuesta = await fetch(url)
             const resultado = await respuesta.json()
-            console.log(resultado.Data)
+            //console.log(resultado.Data)
+
+            //creamos un array solo con la info que necesitamos
+            //utilizamos map en vez de each para crear el arreglo
+            const arrayCriptos = resultado.Data.map( cripto => {
+                 const objeto = {
+                    id: cripto.CoinInfo.Name,
+                    nombre: cripto.CoinInfo.FullName 
+                 } 
+                 return objeto
+                 //console.log(objeto)
+            })
+           
+            //guardamos el array en un state
+            setCriptos(arrayCriptos)
+            //console.log(arrayCriptos)
+
       }
 
       consultarAPI();
@@ -42,6 +62,7 @@ const Formulario = () => {
   return (
     <form>
       <SelectMonedas/>
+      <SelectCriptomoneda/>
       <InputSubmit 
           type='submit' 
           value="Cotizar"
