@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState,useEffect } from 'react'
 import styled from '@emotion/styled'
 import ImagenCripto from './img/imagen-criptos.png'
 import Formulario from './components/Formulario'
+import Resultado from './components/Resultado'
+import Spinner from './components/Spinner'
 
   
 const Contenedor = styled.div`
@@ -42,7 +44,40 @@ const Heading = styled.h1`
 `
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [monedas, setMonedas] = useState({})
+  const [resultado, setResultado] = useState({})
+  const [cargando, setCargando] = useState(false)
+
+  //añadimos un useEffect para cada vez que cambie el objeto monedas
+  useEffect(() => {
+
+    if(Object.keys(monedas).length > 0){  //que solo se ejecute cuando el objeto este definido
+
+      const cotizarCripto = async() => {
+        setCargando(true)
+        setResultado({})
+
+        const {moneda,criptomoneda} = monedas
+        const url = `https://min-api.cryptocompare.com/data/pricemultifull?fsyms=${criptomoneda}&tsyms=${moneda}`
+
+
+        const respuesta = await fetch(url)
+        const resultado = await respuesta.json()
+
+        //como la respuets ade la api viene con keys dinamicas se debera acceder a a los resultados de forma dinamica, para
+        //esto se debe acceder a las llaves utilkizando los valores de las monedas entre corchetes 
+        //console.log(resultado.DISPLAY[criptomoneda][moneda]) 
+
+        setResultado(resultado.DISPLAY[criptomoneda][moneda]) 
+
+        setCargando(false)
+      }
+        
+      cotizarCripto()
+
+    }
+
+  }, [monedas])
 
   return (
     <Contenedor>
@@ -53,8 +88,12 @@ function App() {
       <div> 
         <Heading>Cotiza Criptomonedas al Instante</Heading>
 
-        <Formulario/>
-      </div> 
+        <Formulario
+           setMonedas = {setMonedas}
+        />
+        {cargando && <Spinner/>}
+       {resultado.PRICE && <Resultado resultado={resultado} />}
+      </div>    
     </Contenedor>  
   )
 }
